@@ -48,19 +48,22 @@ export const DebateRoom = () => {
       <div className="container py-4 md:py-6 px-4 md:px-8 flex-grow flex flex-col">
         <h1 className="text-2xl md:text-3xl font-bold mb-4 text-center">XMRT Debate</h1>
         
-        <ScrollArea className="h-20 md:h-24 mb-4">
-          <div className="flex gap-2 p-1 md:gap-3">
-            {participants.map((participant) => (
-              <ParticipantCard
-                key={participant.id}
-                participant={participant}
-                isActive={selectedParticipants.includes(participant.id)}
-                compact
-                onClick={() => handleParticipantToggle(participant.id)}
-              />
-            ))}
-          </div>
-        </ScrollArea>
+        <div className="mb-4 bg-card rounded-lg p-3">
+          <p className="text-sm text-muted-foreground mb-2">Select AI participants (minimum 2):</p>
+          <ScrollArea className="h-24 w-full">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+              {participants.map((participant) => (
+                <ParticipantCard
+                  key={participant.id}
+                  participant={participant}
+                  isActive={selectedParticipants.includes(participant.id)}
+                  compact
+                  onClick={() => handleParticipantToggle(participant.id)}
+                />
+              ))}
+            </div>
+          </ScrollArea>
+        </div>
 
         <div className="bg-card rounded-lg shadow-lg p-3 md:p-4 mb-4">
           <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">

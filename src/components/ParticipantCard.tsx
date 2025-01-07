@@ -15,7 +15,7 @@ export const ParticipantCard = ({ participant, isActive, compact, onClick }: Par
     return (
       <Card 
         className={cn(
-          "min-w-[120px] transition-all duration-300",
+          "transition-all duration-300 h-full",
           isActive ? 'ring-2 ring-primary' : '',
           "hover:bg-accent cursor-pointer"
         )}
@@ -23,7 +23,7 @@ export const ParticipantCard = ({ participant, isActive, compact, onClick }: Par
         onClick={onClick}
       >
         <CardContent className="p-2 flex items-center gap-2">
-          <Avatar className="h-8 w-8">
+          <Avatar className="h-8 w-8 shrink-0">
             <AvatarImage src={participant.avatar} alt={participant.name} />
             <AvatarFallback style={{ backgroundColor: participant.color }} className="text-white text-xs">
               {participant.name.substring(0, 2)}
