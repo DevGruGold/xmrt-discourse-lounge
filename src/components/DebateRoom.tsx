@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { participants } from "../data/participants";
-import { Message as MessageType } from "../types/ai";
+import { Message as MessageType, AIParticipant } from "../types/ai";
 import { ParticipantCard } from "./ParticipantCard";
 import { Message } from "./Message";
 import { Input } from "@/components/ui/input";
@@ -8,17 +8,38 @@ import { Button } from "@/components/ui/button";
 import { Send } from "lucide-react";
 import { Footer } from "./Footer";
 import { ScrollArea } from "./ui/scroll-area";
+import { toast } from "sonner";
 
 export const DebateRoom = () => {
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [topic, setTopic] = useState("");
+  const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
+
+  const handleParticipantToggle = (participantId: string) => {
+    console.log("Toggling participant:", participantId);
+    setSelectedParticipants(prev => {
+      if (prev.includes(participantId)) {
+        return prev.filter(id => id !== participantId);
+      }
+      return [...prev, participantId];
+    });
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!topic.trim()) return;
+    if (!topic.trim()) {
+      toast.error("Please enter a topic for debate");
+      return;
+    }
+    if (selectedParticipants.length < 2) {
+      toast.error("Please select at least 2 AI participants");
+      return;
+    }
 
     // In a real implementation, this would trigger API calls to the various AI services
     console.log("New topic submitted:", topic);
+    console.log("Selected participants:", selectedParticipants);
+    toast.success("Debate started!");
     setTopic("");
   };
 
@@ -33,8 +54,9 @@ export const DebateRoom = () => {
               <ParticipantCard
                 key={participant.id}
                 participant={participant}
-                isActive={messages.some(m => m.participantId === participant.id)}
+                isActive={selectedParticipants.includes(participant.id)}
                 compact
+                onClick={() => handleParticipantToggle(participant.id)}
               />
             ))}
           </div>
@@ -46,9 +68,13 @@ export const DebateRoom = () => {
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
               placeholder="Enter a topic for debate..."
-              className="flex-1"
+              className="flex-1 focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200"
             />
-            <Button type="submit" className="w-full sm:w-auto">
+            <Button 
+              type="submit" 
+              className="w-full sm:w-auto"
+              disabled={!topic.trim() || selectedParticipants.length < 2}
+            >
               <Send className="w-4 h-4 mr-2" />
               Start Debate
             </Button>
@@ -61,7 +87,7 @@ export const DebateRoom = () => {
           ))}
           {messages.length === 0 && (
             <p className="text-center text-muted-foreground py-8">
-              No messages yet. Start a debate by entering a topic above!
+              No messages yet. Start a debate by selecting AI participants and entering a topic above!
             </p>
           )}
         </div>
