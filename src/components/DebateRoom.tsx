@@ -6,6 +6,7 @@ import { Message } from "./Message";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Send } from "lucide-react";
+import { Footer } from "./Footer";
 
 export const DebateRoom = () => {
   const [messages, setMessages] = useState<MessageType[]>([]);
@@ -21,11 +22,11 @@ export const DebateRoom = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <div className="container py-8">
-        <h1 className="text-3xl font-bold mb-8 text-center">XMRT Debate</h1>
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
+      <div className="container py-4 md:py-8 px-4 md:px-8 flex-grow">
+        <h1 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8 text-center">XMRT Debate</h1>
         
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
           {participants.map((participant) => (
             <ParticipantCard
               key={participant.id}
@@ -35,15 +36,15 @@ export const DebateRoom = () => {
           ))}
         </div>
 
-        <div className="bg-card rounded-lg shadow-lg p-4 mb-8">
-          <form onSubmit={handleSubmit} className="flex gap-4">
+        <div className="bg-card rounded-lg shadow-lg p-3 md:p-4 mb-6 md:mb-8">
+          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
             <Input
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
               placeholder="Enter a topic for debate..."
               className="flex-1"
             />
-            <Button type="submit">
+            <Button type="submit" className="w-full sm:w-auto">
               <Send className="w-4 h-4 mr-2" />
               Start Debate
             </Button>
@@ -61,6 +62,7 @@ export const DebateRoom = () => {
           )}
         </div>
       </div>
+      <Footer />
     </div>
   );
 };
