@@ -22,14 +22,14 @@ export const ParticipantCard = ({ participant, isActive, compact, onClick }: Par
         style={{ borderColor: participant.color }}
         onClick={onClick}
       >
-        <CardContent className="p-2 flex items-center gap-2">
-          <Avatar className="h-8 w-8 shrink-0">
+        <CardContent className="p-1.5 flex items-center gap-1.5">
+          <Avatar className="h-6 w-6 shrink-0">
             <AvatarImage src={participant.avatar} alt={participant.name} />
-            <AvatarFallback style={{ backgroundColor: participant.color }} className="text-white text-xs">
+            <AvatarFallback style={{ backgroundColor: participant.color }} className="text-white text-[10px]">
               {participant.name.substring(0, 2)}
             </AvatarFallback>
           </Avatar>
-          <span className="text-sm font-medium truncate">{participant.name}</span>
+          <span className="text-xs font-medium truncate">{participant.name}</span>
         </CardContent>
       </Card>
     );
