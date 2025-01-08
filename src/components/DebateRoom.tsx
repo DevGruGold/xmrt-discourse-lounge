@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { participants } from "../data/participants";
 import { Message as MessageType, AIParticipant } from "../types/ai";
 import { ParticipantCard } from "./ParticipantCard";
@@ -10,12 +10,18 @@ import { Footer } from "./Footer";
 import { ScrollArea } from "./ui/scroll-area";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from 'uuid';
+import { SPEAKER_TIME_LIMIT, getRandomModerator, getModeratorScript } from "../utils/debateRules";
+import { Progress } from "@/components/ui/progress";
 
 export const DebateRoom = () => {
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [topic, setTopic] = useState("");
   const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
   const [isDebating, setIsDebating] = useState(false);
+  const [moderatorId, setModeratorId] = useState<string | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState(SPEAKER_TIME_LIMIT);
+  const [currentSpeaker, setCurrentSpeaker] = useState<string | null>(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleParticipantToggle = (participantId: string) => {
     console.log("Toggling participant:", participantId);
@@ -27,9 +33,39 @@ export const DebateRoom = () => {
     });
   };
 
+  const startTimer = () => {
+    setTimeRemaining(SPEAKER_TIME_LIMIT);
+    if (timerRef.current) clearInterval(timerRef.current);
+    
+    timerRef.current = setInterval(() => {
+      setTimeRemaining(prev => {
+        if (prev <= 1) {
+          if (timerRef.current) clearInterval(timerRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const addModeratorMessage = (content: string) => {
+    if (!moderatorId) return;
+    
+    const newMessage: MessageType = {
+      id: uuidv4(),
+      participantId: moderatorId,
+      content,
+      timestamp: new Date(),
+    };
+    setMessages(prev => [...prev, newMessage]);
+  };
+
   const simulateAIResponse = async (participantId: string, topic: string) => {
     const participant = participants.find(p => p.id === participantId);
     if (!participant) return;
+
+    setCurrentSpeaker(participantId);
+    startTimer();
 
     // Simulate typing delay
     await new Promise(resolve => setTimeout(resolve, Math.random() * 1000 + 500));
@@ -58,23 +94,46 @@ export const DebateRoom = () => {
     setIsDebating(true);
     setMessages([]); // Clear previous messages
 
-    // Initial message
-    const initialMessage: MessageType = {
-      id: uuidv4(),
-      participantId: selectedParticipants[0],
-      content: `Starting a debate on: ${topic}`,
-      timestamp: new Date(),
-    };
-    setMessages([initialMessage]);
+    // Select random moderator
+    const newModeratorId = getRandomModerator(
+      participants.map(p => p.id),
+      selectedParticipants
+    );
+    setModeratorId(newModeratorId);
 
-    // Simulate responses from each AI
+    // Moderator introduction
+    const moderatorScripts = getModeratorScript(topic);
+    for (const script of moderatorScripts) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      addModeratorMessage(script);
+    }
+
+    // Each participant speaks
     for (const participantId of selectedParticipants) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      addModeratorMessage(`I now give the floor to ${participants.find(p => p.id === participantId)?.name}`);
       await simulateAIResponse(participantId, topic);
     }
 
+    // Moderator concludes
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    addModeratorMessage("Based on the arguments presented, I will now declare a winner...");
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    const winner = selectedParticipants[Math.floor(Math.random() * selectedParticipants.length)];
+    addModeratorMessage(`The winner of this debate is ${participants.find(p => p.id === winner)?.name}!`);
+
     setIsDebating(false);
-    toast.success("Debate started!");
+    setCurrentSpeaker(null);
+    if (timerRef.current) clearInterval(timerRef.current);
+    toast.success("Debate concluded!");
   };
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -97,6 +156,20 @@ export const DebateRoom = () => {
             </div>
           </ScrollArea>
         </div>
+
+        {currentSpeaker && (
+          <div className="mb-4 bg-card rounded-lg p-3">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium">
+                Current Speaker: {participants.find(p => p.id === currentSpeaker)?.name}
+              </span>
+              <span className="text-sm text-muted-foreground">
+                Time Remaining: {timeRemaining}s
+              </span>
+            </div>
+            <Progress value={(timeRemaining / SPEAKER_TIME_LIMIT) * 100} />
+          </div>
+        )}
 
         <div className="bg-card rounded-lg shadow-lg p-3 md:p-4 mb-4">
           <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
