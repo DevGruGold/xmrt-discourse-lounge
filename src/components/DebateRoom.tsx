@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { v4 as uuidv4 } from 'uuid';
 import { SPEAKER_TIME_LIMIT, getRandomModerator, getModeratorScript } from "../utils/debateRules";
 import { Progress } from "@/components/ui/progress";
+import { generateAIResponse } from "../utils/aiResponseGenerator";
 
 export const DebateRoom = () => {
   const [messages, setMessages] = useState<MessageType[]>([]);
@@ -76,7 +77,7 @@ export const DebateRoom = () => {
     const newMessage: MessageType = {
       id: uuidv4(),
       participantId,
-      content: `${participant.name} discussing: ${topic}`,
+      content: generateAIResponse(participantId, topic, messages),
       timestamp: new Date(),
     };
 
