@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { participants } from "../data/participants";
 import { Message as MessageType, AIParticipant } from "../types/ai";
 import { ParticipantCard } from "./ParticipantCard";
@@ -9,11 +9,13 @@ import { Send } from "lucide-react";
 import { Footer } from "./Footer";
 import { ScrollArea } from "./ui/scroll-area";
 import { toast } from "sonner";
+import { v4 as uuidv4 } from 'uuid';
 
 export const DebateRoom = () => {
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [topic, setTopic] = useState("");
   const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
+  const [isDebating, setIsDebating] = useState(false);
 
   const handleParticipantToggle = (participantId: string) => {
     console.log("Toggling participant:", participantId);
@@ -25,7 +27,24 @@ export const DebateRoom = () => {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const simulateAIResponse = async (participantId: string, topic: string) => {
+    const participant = participants.find(p => p.id === participantId);
+    if (!participant) return;
+
+    // Simulate typing delay
+    await new Promise(resolve => setTimeout(resolve, Math.random() * 1000 + 500));
+
+    const newMessage: MessageType = {
+      id: uuidv4(),
+      participantId,
+      content: `${participant.name} discussing: ${topic}`,
+      timestamp: new Date(),
+    };
+
+    setMessages(prev => [...prev, newMessage]);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!topic.trim()) {
       toast.error("Please enter a topic for debate");
@@ -36,11 +55,25 @@ export const DebateRoom = () => {
       return;
     }
 
-    // In a real implementation, this would trigger API calls to the various AI services
-    console.log("New topic submitted:", topic);
-    console.log("Selected participants:", selectedParticipants);
+    setIsDebating(true);
+    setMessages([]); // Clear previous messages
+
+    // Initial message
+    const initialMessage: MessageType = {
+      id: uuidv4(),
+      participantId: selectedParticipants[0],
+      content: `Starting a debate on: ${topic}`,
+      timestamp: new Date(),
+    };
+    setMessages([initialMessage]);
+
+    // Simulate responses from each AI
+    for (const participantId of selectedParticipants) {
+      await simulateAIResponse(participantId, topic);
+    }
+
+    setIsDebating(false);
     toast.success("Debate started!");
-    setTopic("");
   };
 
   return (
@@ -72,27 +105,32 @@ export const DebateRoom = () => {
               onChange={(e) => setTopic(e.target.value)}
               placeholder="Enter a topic for debate..."
               className="flex-1 focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200"
+              disabled={isDebating}
             />
             <Button 
               type="submit" 
               className="w-full sm:w-auto"
-              disabled={!topic.trim() || selectedParticipants.length < 2}
+              disabled={!topic.trim() || selectedParticipants.length < 2 || isDebating}
             >
               <Send className="w-4 h-4 mr-2" />
-              Start Debate
+              {isDebating ? "Debating..." : "Start Debate"}
             </Button>
           </form>
         </div>
 
-        <div className="space-y-4 flex-grow overflow-auto">
-          {messages.map((message) => (
-            <Message key={message.id} message={message} />
-          ))}
-          {messages.length === 0 && (
-            <p className="text-center text-muted-foreground py-8">
-              No messages yet. Start a debate by selecting AI participants and entering a topic above!
-            </p>
-          )}
+        <div className="flex-grow overflow-auto bg-card rounded-lg">
+          <ScrollArea className="h-full">
+            <div className="space-y-4 p-4">
+              {messages.map((message) => (
+                <Message key={message.id} message={message} />
+              ))}
+              {messages.length === 0 && (
+                <p className="text-center text-muted-foreground py-8">
+                  No messages yet. Start a debate by selecting AI participants and entering a topic above!
+                </p>
+              )}
+            </div>
+          </ScrollArea>
         </div>
       </div>
       <Footer />
