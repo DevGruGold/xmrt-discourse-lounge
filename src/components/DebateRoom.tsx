@@ -48,8 +48,11 @@ export const DebateRoom = () => {
     }, 1000);
   };
 
-  const addModeratorMessage = (content: string) => {
+  const addModeratorMessage = async (content: string) => {
     if (!moderatorId) return;
+    
+    // Add typing delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
     
     const newMessage: MessageType = {
       id: uuidv4(),
@@ -67,8 +70,8 @@ export const DebateRoom = () => {
     setCurrentSpeaker(participantId);
     startTimer();
 
-    // Simulate typing delay
-    await new Promise(resolve => setTimeout(resolve, Math.random() * 1000 + 500));
+    // Simulate thinking and typing delay (2-4 seconds)
+    await new Promise(resolve => setTimeout(resolve, Math.random() * 2000 + 2000));
 
     const newMessage: MessageType = {
       id: uuidv4(),
@@ -78,6 +81,10 @@ export const DebateRoom = () => {
     };
 
     setMessages(prev => [...prev, newMessage]);
+
+    // Wait for the full speaking time
+    await new Promise(resolve => setTimeout(resolve, SPEAKER_TIME_LIMIT * 1000));
+    setCurrentSpeaker(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -101,32 +108,40 @@ export const DebateRoom = () => {
     );
     setModeratorId(newModeratorId);
 
-    // Moderator introduction
-    const moderatorScripts = getModeratorScript(topic);
-    for (const script of moderatorScripts) {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      addModeratorMessage(script);
+    try {
+      // Moderator introduction
+      const moderatorScripts = getModeratorScript(topic);
+      for (const script of moderatorScripts) {
+        await addModeratorMessage(script);
+      }
+
+      // Each participant speaks in sequence
+      for (const participantId of selectedParticipants) {
+        await addModeratorMessage(`I now give the floor to ${participants.find(p => p.id === participantId)?.name}`);
+        await simulateAIResponse(participantId, topic);
+        
+        // Add a small pause between speakers
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+
+      // Moderator concludes
+      await addModeratorMessage("Based on the arguments presented, I will now declare a winner...");
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const winner = selectedParticipants[Math.floor(Math.random() * selectedParticipants.length)];
+      await addModeratorMessage(`The winner of this debate is ${participants.find(p => p.id === winner)?.name}!`);
+
+      setIsDebating(false);
+      setCurrentSpeaker(null);
+      if (timerRef.current) clearInterval(timerRef.current);
+      toast.success("Debate concluded!");
+    } catch (error) {
+      console.error("Error during debate:", error);
+      toast.error("An error occurred during the debate");
+      setIsDebating(false);
+      setCurrentSpeaker(null);
+      if (timerRef.current) clearInterval(timerRef.current);
     }
-
-    // Each participant speaks
-    for (const participantId of selectedParticipants) {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      addModeratorMessage(`I now give the floor to ${participants.find(p => p.id === participantId)?.name}`);
-      await simulateAIResponse(participantId, topic);
-    }
-
-    // Moderator concludes
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    addModeratorMessage("Based on the arguments presented, I will now declare a winner...");
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    const winner = selectedParticipants[Math.floor(Math.random() * selectedParticipants.length)];
-    addModeratorMessage(`The winner of this debate is ${participants.find(p => p.id === winner)?.name}!`);
-
-    setIsDebating(false);
-    setCurrentSpeaker(null);
-    if (timerRef.current) clearInterval(timerRef.current);
-    toast.success("Debate concluded!");
   };
 
   useEffect(() => {
