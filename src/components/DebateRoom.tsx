@@ -189,32 +189,36 @@ export const DebateRoom = () => {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <div className="container py-4 md:py-6 px-4 md:px-8 flex-grow flex flex-col">
-        <h1 className="text-2xl md:text-3xl font-bold mb-4 text-center">
-          XMRT Debate
-        </h1>
+        <div className="debate-header rounded-t-lg p-6 mb-4">
+          <h1 className="text-2xl md:text-3xl font-bold text-center bg-gradient-to-r from-blue-500 to-red-500 bg-clip-text text-transparent">
+            XMRT Presidential Debate
+          </h1>
+        </div>
 
         {!apiKeysSet && <ApiKeySection onKeySet={checkApiKeys} />}
 
-        <ParticipantSelection
-          selectedParticipants={selectedParticipants}
-          moderatorId={moderatorId}
-          onParticipantToggle={handleParticipantToggle}
-        />
+        <div className="presidential-stage rounded-lg p-4 mb-4">
+          <ParticipantSelection
+            selectedParticipants={selectedParticipants}
+            moderatorId={moderatorId}
+            onParticipantToggle={handleParticipantToggle}
+          />
 
-        <CurrentSpeaker
-          currentSpeaker={currentSpeaker}
-          timeRemaining={timeRemaining}
-        />
+          <CurrentSpeaker
+            currentSpeaker={currentSpeaker}
+            timeRemaining={timeRemaining}
+          />
 
-        <TopicInput
-          topic={topic}
-          isDebating={isDebating}
-          selectedParticipants={selectedParticipants}
-          onTopicChange={setTopic}
-          onSubmit={handleSubmit}
-        />
+          <TopicInput
+            topic={topic}
+            isDebating={isDebating}
+            selectedParticipants={selectedParticipants}
+            onTopicChange={setTopic}
+            onSubmit={handleSubmit}
+          />
+        </div>
 
-        <div className="flex-grow overflow-auto bg-card rounded-lg">
+        <div className="flex-grow overflow-auto bg-card rounded-lg message-container">
           <ScrollArea className="h-full">
             <div className="space-y-4 p-4">
               {messages.map((message) => (

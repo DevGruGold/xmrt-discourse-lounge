@@ -4,25 +4,25 @@
 
 @layer base {
   :root {
-    --background: 222.2 84% 4.9%;
+    --background: 220 14% 12%;
     --foreground: 210 40% 98%;
     
-    --card: 222.2 84% 4.9%;
+    --card: 220 14% 10%;
     --card-foreground: 210 40% 98%;
     
-    --popover: 222.2 84% 4.9%;
+    --popover: 220 14% 12%;
     --popover-foreground: 210 40% 98%;
     
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 199 89% 48%;
+    --primary-foreground: 210 40% 98%;
     
-    --secondary: 217.2 32.6% 17.5%;
+    --secondary: 0 84% 43%;
     --secondary-foreground: 210 40% 98%;
     
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
     
-    --accent: 217.2 32.6% 17.5%;
+    --accent: 220 14% 16%;
     --accent-foreground: 210 40% 98%;
     
     --destructive: 0 62.8% 30.6%;
@@ -42,5 +42,21 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-image: radial-gradient(circle at center, hsl(220 14% 16%), hsl(220 14% 12%));
   }
+}
+
+.presidential-stage {
+  background: linear-gradient(to bottom, hsl(220 14% 16%), hsl(220 14% 12%));
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+  border: 1px solid hsl(var(--border));
+}
+
+.message-container {
+  background: linear-gradient(to right, hsl(220 14% 10%), hsl(220 14% 12%));
+}
+
+.debate-header {
+  background: linear-gradient(to right, hsl(199 89% 48% / 0.1), hsl(0 84% 43% / 0.1));
+  border-bottom: 2px solid hsl(var(--border));
 }
