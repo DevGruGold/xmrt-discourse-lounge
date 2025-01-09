@@ -13,6 +13,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { SPEAKER_TIME_LIMIT, getRandomModerator, getModeratorScript } from "../utils/debateRules";
 import { Progress } from "@/components/ui/progress";
 import { generateAIResponse } from "../utils/aiResponseGenerator";
+import { ApiKeyInput } from "./ApiKeyInput";
+import { getApiKey } from "../utils/apiKeys";
 
 export const DebateRoom = () => {
   const [messages, setMessages] = useState<MessageType[]>([]);
@@ -22,6 +24,7 @@ export const DebateRoom = () => {
   const [moderatorId, setModeratorId] = useState<string | null>(null);
   const [timeRemaining, setTimeRemaining] = useState(SPEAKER_TIME_LIMIT);
   const [currentSpeaker, setCurrentSpeaker] = useState<string | null>(null);
+  const [apiKeysSet, setApiKeysSet] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleParticipantToggle = (participantId: string) => {
@@ -99,6 +102,13 @@ export const DebateRoom = () => {
     setCurrentSpeaker(null);
   };
 
+  const checkApiKeys = () => {
+    const requiredProviders = ['openai', 'anthropic', 'google'];
+    const allKeysSet = requiredProviders.every(provider => getApiKey(provider));
+    setApiKeysSet(allKeysSet);
+    return allKeysSet;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!topic.trim()) {
@@ -107,6 +117,10 @@ export const DebateRoom = () => {
     }
     if (selectedParticipants.length < 2) {
       toast.error("Please select at least 2 AI participants");
+      return;
+    }
+    if (!checkApiKeys()) {
+      toast.error("Please set all required API keys before starting the debate");
       return;
     }
 
@@ -168,6 +182,17 @@ export const DebateRoom = () => {
       <div className="container py-4 md:py-6 px-4 md:px-8 flex-grow flex flex-col">
         <h1 className="text-2xl md:text-3xl font-bold mb-4 text-center">XMRT Debate</h1>
         
+        {!apiKeysSet && (
+          <div className="mb-4 bg-card rounded-lg p-4 space-y-4">
+            <h2 className="text-lg font-semibold">Set API Keys</h2>
+            <div className="space-y-4">
+              <ApiKeyInput provider="openai" onKeySet={checkApiKeys} />
+              <ApiKeyInput provider="anthropic" onKeySet={checkApiKeys} />
+              <ApiKeyInput provider="google" onKeySet={checkApiKeys} />
+            </div>
+          </div>
+        )}
+
         <div className="mb-4 bg-card rounded-lg p-3">
           <p className="text-sm text-muted-foreground mb-2">Select AI participants (minimum 2):</p>
           <ScrollArea className="h-24 w-full">
