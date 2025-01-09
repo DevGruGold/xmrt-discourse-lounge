@@ -6,15 +6,25 @@ export const DEBATE_RULES = {
   closing: "1 minute for closing statements"
 };
 
-export const getRandomModerator = (participants: string[], selectedParticipants: string[]) => {
-  const availableModerators = participants.filter(p => !selectedParticipants.includes(p));
-  const randomIndex = Math.floor(Math.random() * availableModerators.length);
-  return availableModerators[randomIndex];
+export const getRandomModerator = (allParticipants: string[], selectedParticipants: string[]) => {
+  // Filter out selected participants to ensure moderator is not a debater
+  const availableModerators = allParticipants.filter(p => !selectedParticipants.includes(p));
+  
+  // If no available moderators, use a random participant (fallback)
+  if (availableModerators.length === 0) {
+    console.warn('No available moderators, using a participant as moderator');
+    return allParticipants[Math.floor(Math.random() * allParticipants.length)];
+  }
+  
+  console.log('Available moderators:', availableModerators);
+  const selectedModerator = availableModerators[Math.floor(Math.random() * availableModerators.length)];
+  console.log('Selected moderator:', selectedModerator);
+  return selectedModerator;
 };
 
 export const getModeratorScript = (topic: string) => [
   `Welcome to today's debate on the topic: ${topic}`,
   "Each participant will have 1 minute to present their perspective.",
   "Please maintain respectful discourse throughout the debate.",
-  "I will moderate the discussion and ensure equal speaking time.",
+  "Let me introduce our participants and begin the debate.",
 ];

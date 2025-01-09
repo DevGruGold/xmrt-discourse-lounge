@@ -30,6 +30,11 @@ export const DebateRoom = () => {
       if (prev.includes(participantId)) {
         return prev.filter(id => id !== participantId);
       }
+      // Don't allow selecting the moderator as a participant
+      if (moderatorId === participantId) {
+        toast.error("The moderator cannot be a debate participant");
+        return prev;
+      }
       return [...prev, participantId];
     });
   };
@@ -51,6 +56,7 @@ export const DebateRoom = () => {
 
   const addModeratorMessage = async (content: string) => {
     if (!moderatorId) return;
+    console.log(`Moderator ${moderatorId} speaking:`, content);
     
     // Add typing delay
     await new Promise(resolve => setTimeout(resolve, 1500));
@@ -65,8 +71,12 @@ export const DebateRoom = () => {
   };
 
   const simulateAIResponse = async (participantId: string, topic: string) => {
+    console.log(`Starting AI response simulation for ${participantId}`);
     const participant = participants.find(p => p.id === participantId);
-    if (!participant) return;
+    if (!participant) {
+      console.error(`Participant ${participantId} not found`);
+      return;
+    }
 
     setCurrentSpeaker(participantId);
     startTimer();
@@ -81,6 +91,7 @@ export const DebateRoom = () => {
       timestamp: new Date(),
     };
 
+    console.log(`Adding message from ${participantId}:`, newMessage.content);
     setMessages(prev => [...prev, newMessage]);
 
     // Wait for the full speaking time
@@ -102,14 +113,15 @@ export const DebateRoom = () => {
     setIsDebating(true);
     setMessages([]); // Clear previous messages
 
-    // Select random moderator
-    const newModeratorId = getRandomModerator(
-      participants.map(p => p.id),
-      selectedParticipants
-    );
-    setModeratorId(newModeratorId);
-
     try {
+      // Select random moderator from non-participating AIs
+      const newModeratorId = getRandomModerator(
+        participants.map(p => p.id),
+        selectedParticipants
+      );
+      console.log('Selected moderator:', newModeratorId);
+      setModeratorId(newModeratorId);
+
       // Moderator introduction
       const moderatorScripts = getModeratorScript(topic);
       for (const script of moderatorScripts) {
@@ -126,7 +138,7 @@ export const DebateRoom = () => {
       }
 
       // Moderator concludes
-      await addModeratorMessage("Based on the arguments presented, I will now declare a winner...");
+      await addModeratorMessage("Thank you all for your perspectives. Based on the arguments presented, I will now declare a winner...");
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       const winner = selectedParticipants[Math.floor(Math.random() * selectedParticipants.length)];
