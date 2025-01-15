@@ -12,7 +12,6 @@ import {
 } from "../utils/debateRules";
 import { generateAIResponse } from "../utils/aiResponseGenerator";
 import { getApiKey } from "../utils/apiKeys";
-import { ApiKeySection } from "./ApiKeySection";
 import { ParticipantSelection } from "./ParticipantSelection";
 import { CurrentSpeaker } from "./CurrentSpeaker";
 import { TopicInput } from "./TopicInput";
@@ -26,7 +25,6 @@ export const DebateRoom = () => {
   const [moderatorId, setModeratorId] = useState<string | null>(null);
   const [timeRemaining, setTimeRemaining] = useState(SPEAKER_TIME_LIMIT);
   const [currentSpeaker, setCurrentSpeaker] = useState<string | null>(null);
-  const [apiKeysSet, setApiKeysSet] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const checkApiKeys = () => {
@@ -37,8 +35,14 @@ export const DebateRoom = () => {
       "meta",
       "deepseek",
     ];
-    const allKeysSet = requiredProviders.every((provider) => getApiKey(provider));
-    setApiKeysSet(allKeysSet);
+    const allKeysSet = requiredProviders.every((provider) => {
+      const key = getApiKey(provider);
+      if (!key) {
+        console.error(`Missing ${provider} API key in environment variables`);
+        return false;
+      }
+      return true;
+    });
     return allKeysSet;
   };
 
@@ -121,7 +125,7 @@ export const DebateRoom = () => {
       return;
     }
     if (!checkApiKeys()) {
-      toast.error("Please set all required API keys before starting the debate");
+      toast.error("Some required API keys are missing from environment variables");
       return;
     }
 
@@ -148,7 +152,6 @@ export const DebateRoom = () => {
           }`
         );
         await simulateAIResponse(participantId, topic);
-
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
 
@@ -194,8 +197,6 @@ export const DebateRoom = () => {
             XMRT Presidential Debate
           </h1>
         </div>
-
-        {!apiKeysSet && <ApiKeySection onKeySet={checkApiKeys} />}
 
         <div className="presidential-stage rounded-lg p-4 mb-4">
           <ParticipantSelection

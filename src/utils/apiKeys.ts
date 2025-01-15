@@ -1,15 +1,13 @@
-// Store API keys in memory (not persistent)
-let apiKeys: { [key: string]: string } = {};
-
-export const setApiKey = (provider: string, key: string) => {
-  console.log(`Setting API key for ${provider}`);
-  apiKeys[provider] = key;
+export const getApiKey = (provider: string): string | null => {
+  const envKey = `VITE_${provider.toUpperCase()}_API_KEY`;
+  return import.meta.env[envKey] || null;
 };
 
-export const getApiKey = (provider: string): string | null => {
-  return apiKeys[provider] || null;
+// These functions are kept but will now be no-ops since we're using env vars
+export const setApiKey = (provider: string, key: string) => {
+  console.log(`API keys are now managed through environment variables`);
 };
 
 export const clearApiKeys = () => {
-  apiKeys = {};
+  console.log(`API keys are now managed through environment variables`);
 };
