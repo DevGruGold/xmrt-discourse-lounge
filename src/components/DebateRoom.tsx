@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { Message as MessageType } from "../types/ai";
 import { Message } from "./Message";
@@ -12,13 +13,13 @@ import { TopicInput } from "./TopicInput";
 import { participants } from "../data/participants";
 
 const DEBATE_TIME_LIMIT = 300; // 5 minutes in seconds
-const MODERATOR_ID = "Deepseek";
 
 export const DebateRoom = () => {
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [topic, setTopic] = useState("");
   const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
   const [isDebating, setIsDebating] = useState(false);
+  const [moderatorId, setModeratorId] = useState<string | null>(null);
   const [timeRemaining, setTimeRemaining] = useState(DEBATE_TIME_LIMIT);
   const [currentSpeaker, setCurrentSpeaker] = useState<string | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -166,32 +167,22 @@ export const DebateRoom = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background/50 text-foreground flex flex-col">
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
       <div className="container py-4 md:py-6 px-4 md:px-8 flex-grow flex flex-col">
         <div className="debate-header rounded-t-lg p-6 mb-4">
-          <div className="flex flex-col items-center space-y-2">
-            <div className="w-16 h-16 mb-2">
-              <img src="/placeholder.svg" alt="Presidential Seal" className="w-full h-full object-contain opacity-80" />
-            </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-center">
-              <span className="bg-gradient-to-r from-[#ea384c] to-[#0FA0CE] bg-clip-text text-transparent">
-                American AI Debate Stage
-              </span>
-            </h1>
-            <p className="text-sm md:text-base text-muted-foreground">
-              Where American AI Champions Debate the Future
-            </p>
-          </div>
+          <h1 className="text-2xl md:text-3xl font-bold text-center bg-gradient-to-r from-blue-500 to-red-500 bg-clip-text text-transparent">
+            XMRT Presidential Debate
+          </h1>
         </div>
 
-        <div className="presidential-stage rounded-lg p-6 mb-4">
+        <div className="presidential-stage rounded-lg p-4 mb-4">
           <ParticipantSelection
             selectedParticipants={selectedParticipants}
             moderatorId={moderatorId}
             onParticipantToggle={handleParticipantToggle}
           />
 
-          <div className="patriotic-card rounded-lg p-4 mb-4">
+          <div className="bg-card rounded-lg p-3 mb-4">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">
                 Debate Time Remaining: {Math.floor(timeRemaining / 60)}:{(timeRemaining % 60).toString().padStart(2, '0')}
@@ -208,21 +199,17 @@ export const DebateRoom = () => {
           />
         </div>
 
-        <div className="flex-grow overflow-hidden bg-card/30 rounded-lg message-container backdrop-blur-sm">
+        <div className="flex-grow overflow-auto bg-card rounded-lg message-container">
           <ScrollArea className="h-full">
             <div className="space-y-4 p-4">
               {messages.map((message) => (
                 <Message key={message.id} message={message} />
               ))}
               {messages.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <div className="w-24 h-24 mb-4 opacity-50">
-                    <img src="/placeholder.svg" alt="Debate Icon" className="w-full h-full object-contain" />
-                  </div>
-                  <p className="text-muted-foreground max-w-md">
-                    Select your AI participants and enter a topic to begin the presidential debate.
-                  </p>
-                </div>
+                <p className="text-center text-muted-foreground py-8">
+                  No messages yet. Start a debate by selecting AI participants and
+                  entering a topic above!
+                </p>
               )}
             </div>
           </ScrollArea>

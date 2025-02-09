@@ -1,14 +1,13 @@
-
 import { AIParticipant } from "../types/ai";
 
 export const participants: AIParticipant[] = [
   {
     id: "gpt4",
-    name: "ChatGPT",
+    name: "GPT-4",
     company: "OpenAI",
     avatar: "/placeholder.svg",
     color: "#10a37f",
-    description: "American AI focused on safe and ethical interactions",
+    description: "Analytical and balanced, with a focus on accuracy and ethical considerations",
   },
   {
     id: "claude",
@@ -16,15 +15,23 @@ export const participants: AIParticipant[] = [
     company: "Anthropic",
     avatar: "/placeholder.svg",
     color: "#0b0035",
-    description: "American AI with constitutional principles",
+    description: "Constitutional AI advocate with a philosophical bent",
+  },
+  {
+    id: "gemini",
+    name: "Gemini",
+    company: "Google",
+    avatar: "/placeholder.svg",
+    color: "#4285f4",
+    description: "Data-driven with a focus on comprehensive knowledge",
   },
   {
     id: "llama",
-    name: "Meta AI",
+    name: "Llama",
     company: "Meta",
     avatar: "/placeholder.svg",
     color: "#0668e1",
-    description: "American AI pioneering open-source development",
+    description: "Open-source enthusiast promoting accessibility",
   },
   {
     id: "deepseek",
@@ -32,9 +39,6 @@ export const participants: AIParticipant[] = [
     company: "Deepseek",
     avatar: "/placeholder.svg",
     color: "#2d2d2d",
-    description: "Your debate moderator specializing in deep technical understanding",
-  }
+    description: "Innovative with a focus on deep technical understanding",
+  },
 ];
-
-export const MODERATOR_ID = "deepseek";
-export const ALLOWED_DEBATERS = ["gpt4", "claude", "llama"];
