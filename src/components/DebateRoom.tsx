@@ -6,17 +6,13 @@ import { Footer } from "./Footer";
 import { ScrollArea } from "./ui/scroll-area";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
-import {
-  SPEAKER_TIME_LIMIT,
-  getRandomModerator,
-  getModeratorScript,
-} from "../utils/debateRules";
+import { getRandomModerator, getModeratorScript } from "../utils/debateRules";
 import { generateAIResponse } from "../utils/aiResponseGenerator";
-import { getApiKey } from "../utils/apiKeys";
 import { ParticipantSelection } from "./ParticipantSelection";
-import { CurrentSpeaker } from "./CurrentSpeaker";
 import { TopicInput } from "./TopicInput";
 import { participants } from "../data/participants";
+
+const DEBATE_TIME_LIMIT = 300; // 5 minutes in seconds
 
 export const DebateRoom = () => {
   const [messages, setMessages] = useState<MessageType[]>([]);
@@ -24,7 +20,7 @@ export const DebateRoom = () => {
   const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
   const [isDebating, setIsDebating] = useState(false);
   const [moderatorId, setModeratorId] = useState<string | null>(null);
-  const [timeRemaining, setTimeRemaining] = useState(SPEAKER_TIME_LIMIT);
+  const [timeRemaining, setTimeRemaining] = useState(DEBATE_TIME_LIMIT);
   const [currentSpeaker, setCurrentSpeaker] = useState<string | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -37,14 +33,15 @@ export const DebateRoom = () => {
     );
   };
 
-  const startTimer = () => {
-    setTimeRemaining(SPEAKER_TIME_LIMIT);
+  const startDebateTimer = () => {
+    setTimeRemaining(DEBATE_TIME_LIMIT);
     if (timerRef.current) clearInterval(timerRef.current);
 
     timerRef.current = setInterval(() => {
       setTimeRemaining((prev) => {
         if (prev <= 1) {
           if (timerRef.current) clearInterval(timerRef.current);
+          endDebate();
           return 0;
         }
         return prev - 1;
@@ -52,11 +49,28 @@ export const DebateRoom = () => {
     }, 1000);
   };
 
-  const addModeratorMessage = async (content: string) => {
+  const endDebate = () => {
+    setIsDebating(false);
+    setCurrentSpeaker(null);
+    if (timerRef.current) clearInterval(timerRef.current);
+    
+    // Add closing message from moderator
+    if (moderatorId) {
+      const closingMessage: MessageType = {
+        id: uuidv4(),
+        participantId: moderatorId,
+        content: "Time's up! This concludes our debate. Thank you all for participating.",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, closingMessage]);
+    }
+    
+    toast.success("Debate concluded!");
+  };
+
+  const addModeratorMessage = (content: string) => {
     if (!moderatorId) return;
     console.log(`Moderator ${moderatorId} speaking:`, content);
-
-    await new Promise((resolve) => setTimeout(resolve, 1500));
 
     const newMessage: MessageType = {
       id: uuidv4(),
@@ -67,8 +81,7 @@ export const DebateRoom = () => {
     setMessages((prev) => [...prev, newMessage]);
   };
 
-  const simulateAIResponse = async (participantId: string, topic: string) => {
-    console.log(`Starting AI response simulation for ${participantId}`);
+  const addParticipantMessage = (participantId: string, topic: string) => {
     const participant = participants.find(p => p.id === participantId);
     if (!participant) {
       console.error(`Participant ${participantId} not found`);
@@ -76,24 +89,31 @@ export const DebateRoom = () => {
     }
 
     setCurrentSpeaker(participantId);
-    startTimer();
-
-    await new Promise((resolve) =>
-      setTimeout(resolve, Math.random() * 2000 + 2000)
-    );
-
+    const response = generateAIResponse(participantId, topic, messages);
+    
     const newMessage: MessageType = {
       id: uuidv4(),
       participantId,
-      content: generateAIResponse(participantId, topic, messages),
+      content: response,
       timestamp: new Date(),
     };
 
     console.log(`Adding message from ${participantId}:`, newMessage.content);
     setMessages((prev) => [...prev, newMessage]);
 
-    await new Promise((resolve) => setTimeout(resolve, SPEAKER_TIME_LIMIT * 1000));
-    setCurrentSpeaker(null);
+    // Continue the debate by having the next participant respond
+    const nextParticipant = getNextParticipant(participantId);
+    if (nextParticipant && isDebating) {
+      addParticipantMessage(nextParticipant, topic);
+    }
+  };
+
+  const getNextParticipant = (currentParticipantId: string) => {
+    const currentIndex = selectedParticipants.indexOf(currentParticipantId);
+    if (currentIndex === -1) return null;
+    
+    const nextIndex = (currentIndex + 1) % selectedParticipants.length;
+    return selectedParticipants[nextIndex];
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -115,49 +135,28 @@ export const DebateRoom = () => {
         participants.map((p) => p.id),
         selectedParticipants
       );
-      console.log("Selected moderator:", newModeratorId);
       setModeratorId(newModeratorId);
 
+      // Start the debate timer
+      startDebateTimer();
+
+      // Add moderator's introduction
       const moderatorScripts = getModeratorScript(topic);
-      for (const script of moderatorScripts) {
-        await addModeratorMessage(script);
-      }
+      moderatorScripts.forEach(script => addModeratorMessage(script));
 
-      for (const participantId of selectedParticipants) {
-        await addModeratorMessage(
-          `I now give the floor to ${
-            participants.find((p) => p.id === participantId)?.name
-          }`
-        );
-        await simulateAIResponse(participantId, topic);
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      }
-
-      await addModeratorMessage(
-        "Thank you all for your perspectives. Based on the arguments presented, I will now declare a winner..."
+      // Start with the first participant
+      const firstParticipant = selectedParticipants[0];
+      addModeratorMessage(
+        `I now give the floor to ${
+          participants.find((p) => p.id === firstParticipant)?.name
+        }`
       );
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      addParticipantMessage(firstParticipant, topic);
 
-      const winner =
-        selectedParticipants[
-          Math.floor(Math.random() * selectedParticipants.length)
-        ];
-      await addModeratorMessage(
-        `The winner of this debate is ${
-          participants.find((p) => p.id === winner)?.name
-        }!`
-      );
-
-      setIsDebating(false);
-      setCurrentSpeaker(null);
-      if (timerRef.current) clearInterval(timerRef.current);
-      toast.success("Debate concluded!");
     } catch (error) {
       console.error("Error during debate:", error);
       toast.error("An error occurred during the debate");
-      setIsDebating(false);
-      setCurrentSpeaker(null);
-      if (timerRef.current) clearInterval(timerRef.current);
+      endDebate();
     }
   };
 
@@ -183,10 +182,13 @@ export const DebateRoom = () => {
             onParticipantToggle={handleParticipantToggle}
           />
 
-          <CurrentSpeaker
-            currentSpeaker={currentSpeaker}
-            timeRemaining={timeRemaining}
-          />
+          <div className="bg-card rounded-lg p-3 mb-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">
+                Debate Time Remaining: {Math.floor(timeRemaining / 60)}:{(timeRemaining % 60).toString().padStart(2, '0')}
+              </span>
+            </div>
+          </div>
 
           <TopicInput
             topic={topic}
