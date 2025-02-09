@@ -1,7 +1,7 @@
 
 import { ScrollArea } from "./ui/scroll-area";
 import { ParticipantCard } from "./ParticipantCard";
-import { participants } from "../data/participants";
+import { participants, MODERATOR_ID, ALLOWED_DEBATERS } from "../data/participants";
 import { toast } from "sonner";
 
 interface ParticipantSelectionProps {
@@ -15,32 +15,49 @@ export const ParticipantSelection = ({
   moderatorId,
   onParticipantToggle,
 }: ParticipantSelectionProps) => {
+  const moderator = participants.find(p => p.id === MODERATOR_ID);
+  const debaters = participants.filter(p => ALLOWED_DEBATERS.includes(p.id));
+
   const handleParticipantToggle = (participantId: string) => {
-    if (moderatorId === participantId) {
-      toast.error("The moderator cannot be a debate participant");
+    if (selectedParticipants.length >= 2 && !selectedParticipants.includes(participantId)) {
+      toast.error("You can only select two AI participants for the debate");
       return;
     }
     onParticipantToggle(participantId);
   };
 
   return (
-    <div className="mb-4 bg-card rounded-lg p-3">
-      <p className="text-sm text-muted-foreground mb-2">
-        Select AI participants (minimum 2):
-      </p>
-      <ScrollArea className="h-24 w-full">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
-          {participants.map((participant) => (
-            <ParticipantCard
-              key={participant.id}
-              participant={participant}
-              isActive={selectedParticipants.includes(participant.id)}
-              compact
-              onClick={() => handleParticipantToggle(participant.id)}
-            />
-          ))}
-        </div>
-      </ScrollArea>
+    <div className="space-y-4">
+      <div className="patriotic-card rounded-lg p-3">
+        <p className="text-sm text-muted-foreground mb-2">Debate Moderator:</p>
+        {moderator && (
+          <ParticipantCard
+            key={moderator.id}
+            participant={moderator}
+            isActive={true}
+            compact
+          />
+        )}
+      </div>
+      
+      <div className="patriotic-card rounded-lg p-3">
+        <p className="text-sm text-muted-foreground mb-2">
+          Select two American AIs for the debate:
+        </p>
+        <ScrollArea className="h-24 w-full">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {debaters.map((participant) => (
+              <ParticipantCard
+                key={participant.id}
+                participant={participant}
+                isActive={selectedParticipants.includes(participant.id)}
+                compact
+                onClick={() => handleParticipantToggle(participant.id)}
+              />
+            ))}
+          </div>
+        </ScrollArea>
+      </div>
     </div>
   );
 };

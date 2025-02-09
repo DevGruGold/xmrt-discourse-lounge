@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Message as MessageType } from "../types/ai";
 import { Message } from "./Message";
@@ -13,13 +12,13 @@ import { TopicInput } from "./TopicInput";
 import { participants } from "../data/participants";
 
 const DEBATE_TIME_LIMIT = 300; // 5 minutes in seconds
+const MODERATOR_ID = "Deepseek";
 
 export const DebateRoom = () => {
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [topic, setTopic] = useState("");
   const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
   const [isDebating, setIsDebating] = useState(false);
-  const [moderatorId, setModeratorId] = useState<string | null>(null);
   const [timeRemaining, setTimeRemaining] = useState(DEBATE_TIME_LIMIT);
   const [currentSpeaker, setCurrentSpeaker] = useState<string | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -176,11 +175,11 @@ export const DebateRoom = () => {
             </div>
             <h1 className="text-3xl md:text-4xl font-bold text-center">
               <span className="bg-gradient-to-r from-[#ea384c] to-[#0FA0CE] bg-clip-text text-transparent">
-                Presidential AI Debate
+                American AI Debate Stage
               </span>
             </h1>
             <p className="text-sm md:text-base text-muted-foreground">
-              Where Artificial Intelligence Meets Democracy
+              Where American AI Champions Debate the Future
             </p>
           </div>
         </div>
