@@ -1,3 +1,4 @@
+
 import { ScrollArea } from "./ui/scroll-area";
 import { ParticipantCard } from "./ParticipantCard";
 import { participants } from "../data/participants";

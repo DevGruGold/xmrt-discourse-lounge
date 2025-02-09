@@ -1,3 +1,4 @@
+
 export interface AIParticipant {
   id: string;
   name: string;

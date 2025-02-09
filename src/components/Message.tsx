@@ -1,3 +1,4 @@
+
 import { Message as MessageType } from "../types/ai";
 import { participants } from "../data/participants";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
