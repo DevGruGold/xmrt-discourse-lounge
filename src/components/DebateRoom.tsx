@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { Message as MessageType } from "../types/ai";
 import { Message } from "./Message";
@@ -26,25 +27,6 @@ export const DebateRoom = () => {
   const [timeRemaining, setTimeRemaining] = useState(SPEAKER_TIME_LIMIT);
   const [currentSpeaker, setCurrentSpeaker] = useState<string | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-
-  const checkApiKeys = () => {
-    const requiredProviders = [
-      "openai",
-      "anthropic",
-      "google",
-      "meta",
-      "deepseek",
-    ];
-    const allKeysSet = requiredProviders.every((provider) => {
-      const key = getApiKey(provider);
-      if (!key) {
-        console.error(`Missing ${provider} API key in environment variables`);
-        return false;
-      }
-      return true;
-    });
-    return allKeysSet;
-  };
 
   const handleParticipantToggle = (participantId: string) => {
     console.log("Toggling participant:", participantId);
@@ -87,7 +69,7 @@ export const DebateRoom = () => {
 
   const simulateAIResponse = async (participantId: string, topic: string) => {
     console.log(`Starting AI response simulation for ${participantId}`);
-    const participant = participants.find((p) => p.id === participantId);
+    const participant = participants.find(p => p.id === participantId);
     if (!participant) {
       console.error(`Participant ${participantId} not found`);
       return;
@@ -122,10 +104,6 @@ export const DebateRoom = () => {
     }
     if (selectedParticipants.length < 2) {
       toast.error("Please select at least 2 AI participants");
-      return;
-    }
-    if (!checkApiKeys()) {
-      toast.error("Some required API keys are missing from environment variables");
       return;
     }
 
