@@ -12,8 +12,8 @@ export const Message = ({ message }: MessageProps) => {
   if (!participant) return null;
 
   return (
-    <div className="flex items-start space-x-4 p-4 animate-message-appear hover:bg-accent/50 rounded-lg transition-colors">
-      <Avatar className="border-2" style={{ borderColor: participant.color }}>
+    <div className="patriotic-card flex items-start space-x-4 p-4 animate-message-appear rounded-lg">
+      <Avatar className="border-2 ring-2 ring-offset-2 ring-offset-background" style={{ borderColor: participant.color }}>
         <AvatarImage src={participant.avatar} alt={participant.name} />
         <AvatarFallback style={{ backgroundColor: participant.color }} className="text-white">
           {participant.name.substring(0, 2)}

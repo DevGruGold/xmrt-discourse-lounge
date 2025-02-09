@@ -19,18 +19,18 @@ export const TopicInput = ({
   onSubmit,
 }: TopicInputProps) => {
   return (
-    <div className="bg-card rounded-lg shadow-lg p-3 md:p-4 mb-4">
+    <div className="patriotic-card rounded-lg p-3 md:p-4 mb-4">
       <form onSubmit={onSubmit} className="flex flex-col sm:flex-row gap-3">
         <Input
           value={topic}
           onChange={(e) => onTopicChange(e.target.value)}
           placeholder="Enter a topic for debate..."
-          className="flex-1 focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200"
+          className="flex-1 bg-background/50 border-white/10 focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200"
           disabled={isDebating}
         />
         <Button
           type="submit"
-          className="w-full sm:w-auto"
+          className="w-full sm:w-auto bg-gradient-to-r from-[#ea384c] to-[#0FA0CE] hover:opacity-90 transition-opacity"
           disabled={!topic.trim() || selectedParticipants.length < 2 || isDebating}
         >
           <Send className="w-4 h-4 mr-2" />
